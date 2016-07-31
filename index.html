@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Weather App</title>
+	<meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+    	#map{
+    		height: 500px;
+    		width: 700px;
+    	}
+    </style>
+    <script   src="https://code.jquery.com/jquery-2.2.4.js"   integrity="sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI="   crossorigin="anonymous"></script>
+</head>
+<body>
+	<div id="showLocation"></div>
+	<div id="weather"></div>
+	<div id="map"></div>
+	<script>
+		var x = document.getElementById("showLocation");
+		var y = document.getElementById("weather");
+		var lat,lng,map;
+		window.onload=function() {
+		    if (navigator.geolocation) {
+		        navigator.geolocation.getCurrentPosition(showPosition, showError);
+		    } else {
+		        x.innerHTML = "Geolocation is not supported by this browser.";
+		    }
+		}
+		function showPosition(position) {
+			lat = position.coords.latitude;
+			lng = position.coords.longitude;
+		    x.innerHTML = "Latitude: " + position.coords.latitude + 
+		    "<br>Longitude: " + position.coords.longitude; 
+		    initMap();
+		}
+		function showError(error) {
+		    switch(error.code) {
+		        case error.PERMISSION_DENIED:
+		            x.innerHTML = "User denied the request for Geolocation."
+		            break;
+		        case error.POSITION_UNAVAILABLE:
+		            x.innerHTML = "Location information is unavailable."
+		            break;
+		        case error.TIMEOUT:
+		            x.innerHTML = "The request to get user location timed out."
+		            break;
+		        case error.UNKNOWN_ERROR:
+		            x.innerHTML = "An unknown error occurred."
+		            break;
+		    }
+		}
+		function getWeather(){
+			x.innerHTML = "Latitude: " + lat + 
+		    	"<br>Longitude: " + lng;
+		    	$.ajax({
+			        url: "http://api.openweathermap.org/data/2.5/weather?lat="+lat+"&lon="+lng+"&APPID=9f4215a6aa6fc30e7d84fbd278272ba7",
+			        dataType: "jsonp",
+			        success: function(response) {
+			        	y.innerHTML = "Area Name:"+response.name+"<br>"+
+			        					"Weather:"+response.weather[0].main+"<br>"+
+			        					"What will happen:"+response.weather[0].description+"<br>"
+			        }
+			    });
+		}
+		function initMap() {
+			map = new google.maps.Map(document.getElementById('map'),{
+				center: {lat:lat,lng:lng},
+				zoom:12
+			});
+
+			var myLatlng = new google.maps.LatLng(lat,lng);
+			var mapOptions = {
+				zoom: 12,
+				center: myLatlng
+			}
+			var marker = new google.maps.Marker({
+			    position: myLatlng,
+			    map: map,
+			    draggable:true,
+			    title:"Drag me!"
+			});
+			getWeather();
+			    
+
+			google.maps.event.addListener(marker, 'dragend', function(evt){
+			    lat = evt.latLng.lat(); 
+			    lng = evt.latLng.lng();
+			    getWeather();
+			});
+
+			map.setCenter(marker.position);
+			marker.setMap(map);
+		}
+	</script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzSSaXX9U3vsW7o4SRcgNng2VW3OO5YXM&callback=initMap" async defer></script>
+</body>
+</html>
